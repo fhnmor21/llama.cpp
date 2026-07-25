@@ -1,0 +1,1 @@
+podman run -d --replace -e STREAM_READINESS_TIMEOUT_MS=0 --name omniroute --add-host=host.docker.internal:host-gateway --restart unless-stopped --stop-timeout 40 -p 20128:20128 -v omniroute-data:/app/data diegosouzapw/omniroute:latest
