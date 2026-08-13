@@ -154,3 +154,6 @@ a.out.*
 AGENTS.local.md
 .pi/SYSTEM.md
 tools/ui/bun.lock
+shaderc
+zluda
+zluda-linux-9a9779c7.tar.gz
