@@ -1,1 +1,0 @@
-./build_hip/bin/llama-server -dev none --jinja -fa on -t 16 -np 1 -c 32000 -ctk q4_0 -ctv q4_0 -ub 2048 -kvu --reasoning-preserve --repeat-penalty 1.1 -m /home/bazzite/Work/HF/gemma-4-E2B-it-qat-UD-Q4_K_XL.gguf --host 0.0.0.0 --port 8880
