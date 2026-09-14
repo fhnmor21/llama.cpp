@@ -1620,11 +1620,19 @@ static void ggml_cuda_mul_mat_cublas_impl(ggml_backend_cuda_context & ctx, const
 }
 
 static void ggml_cuda_mul_mat_cublas(ggml_backend_cuda_context & ctx, const ggml_tensor * src0, const ggml_tensor * src1, ggml_tensor * dst) {
+    const int cc = ggml_cuda_info().devices[ctx.device].cc;
     ggml_type compute_type = src0->type;
     if (ggml_is_quantized(compute_type)) {
-        compute_type = fast_fp16_hardware_available(ggml_cuda_info().devices[ctx.device].cc) ? GGML_TYPE_F16 : GGML_TYPE_F32;
-    } else if (compute_type == GGML_TYPE_F16 && !fast_fp16_hardware_available(ggml_cuda_info().devices[ctx.device].cc)) {
+        compute_type = fast_fp16_hardware_available(cc) ? GGML_TYPE_F16 : GGML_TYPE_F32;
+    } else if (compute_type == GGML_TYPE_F16 && !fast_fp16_hardware_available(cc)) {
         compute_type = GGML_TYPE_F32;
+    } else if (compute_type == GGML_TYPE_BF16 && !fast_bf16_hardware_available(cc)) {
+        if (GGML_CUDA_CC_IS_AMD(cc) && src1->ne[1] > 32) {
+            compute_type = GGML_TYPE_F32;
+        }
+        if (GGML_CUDA_CC_IS_NVIDIA(cc) && src1->ne[1] > (cc >= GGML_CUDA_CC_VOLTA ? 8 : 128)) {
+            compute_type = GGML_TYPE_F32;
+        }
     }
     if (dst->op_params[0] == GGML_PREC_F32) {
         compute_type = GGML_TYPE_F32;
@@ -5640,8 +5648,8 @@ static ggml_backend_feature * ggml_backend_cuda_get_features(ggml_backend_reg_t 
         features.push_back({ "USE_GRAPHS", "1" });
     #endif
 
-    #ifdef GGML_CUDA_FA_ALL_QUANTS
-        features.push_back({ "FA_ALL_QUANTS", "1" });
+    #ifdef GGML_CUDA_FA_QUANTS
+        features.push_back({ "FA_QUANTS", GGML_CUDA_FA_QUANTS });
     #endif
 
     {
